@@ -1,14 +1,14 @@
 use axum::{extract::ConnectInfo, routing::get, Router};
-use std::net::SocketAddr;
+use std::net::{SocketAddr, IpAddr, Ipv6Addr};
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let address = "0.0.0.0:3000";
+    let address = &SocketAddr::new(IpAddr::from(Ipv6Addr::UNSPECIFIED), 3000);
 
     tracing::info!("Listening on {}", address);
-    axum::Server::bind(&address.parse::<SocketAddr>().unwrap())
+    axum::Server::bind(address)
         .serve(app().into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();

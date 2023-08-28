@@ -1,6 +1,6 @@
 [package]
 name = "ip-rs"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Heitor de Bittencourt <heitorpbittencourt@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "A simple web service to find out your public IP address"

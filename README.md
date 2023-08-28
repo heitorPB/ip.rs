@@ -2,6 +2,20 @@
 
 A simple web service to find out your public IP address.
 
+## Usage
+
+On the command line, make a GET request to
+[iprs.fly.dev](https:://iprs.fly.dev). For example:
+
+```shell
+$ curl -L iprs.fly.dev
+2804:431:cfce:3b4e:1234:b2fd:d222:c11
+
+# Or using IPv4
+$ curl -L iprs.fly.dev -4
+207.231.149.232
+```
+
 ## License
 
 Licensed under either of

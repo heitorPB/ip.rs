@@ -2,6 +2,9 @@
 
 A simple web service to find out your public IP address.
 
+[![Crates.io](https://img.shields.io/crates/v/ip-rs.svg)](https://crates.io/crate/ip-rs)
+[![Blog Post](https://img.shields.io/badge/Blog-post-green)](https://heitorpb.github.io/bla/ip.rs)
+
 ## Usage
 
 On the command line, make a GET request to
@@ -18,7 +21,8 @@ $ curl -L iprs.fly.dev -4
 
 ## License
 
-Licensed under either of
+© 2023 [Heitor de Bittencourt](https://heitorpb.github.io). Licensed under
+either of
 
  * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE)
    or http://www.apache.org/licenses/LICENSE-2.0)

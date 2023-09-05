@@ -41,7 +41,7 @@ fn app() -> Router {
 
 async fn root(ConnectInfo(addr): ConnectInfo<SocketAddr>, headers: HeaderMap) -> String {
     tracing::info!("GET(/) Handling connection from {}", addr);
-    format!("{}", ip(addr.ip(), &headers))
+    ip(addr.ip(), &headers)
 }
 
 async fn json(ConnectInfo(addr): ConnectInfo<SocketAddr>, headers: HeaderMap) -> impl IntoResponse {
@@ -70,7 +70,7 @@ fn ip(address: IpAddr, headers: &HeaderMap) -> String {
             .to_string();
 
         // Extract the first IP
-        ip = value.split(",").nth(0).unwrap().to_string();
+        ip = value.split(',').next().unwrap().to_string();
 
         // Remove port number, if it is there. Beware of IPv6 colons.
         // There are five cases:
@@ -82,19 +82,19 @@ fn ip(address: IpAddr, headers: &HeaderMap) -> String {
         // First deal with [IPv6]:PORT
         ip = match ip.split_once("]:") {
             None => ip,
-            Some(value) => value.0.to_string().replace("[", ""),
+            Some(value) => value.0.to_string().replace('[', ""),
         };
 
         // IPv6 does not contains dots
-        if ip.contains(".") {
+        if ip.contains('.') {
             // IPv4 with or without port
-            ip = match ip.split_once(":") {
+            ip = match ip.split_once(':') {
                 None => ip,
                 Some(value) => value.0.to_string(),
             }
         };
 
-        ip = ip.replace("[", "").replace("]", "");
+        ip = ip.replace(['[',']'], "");
     };
 
     ip

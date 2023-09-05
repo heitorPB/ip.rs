@@ -2,7 +2,10 @@ use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 
 use axum::{
     extract::ConnectInfo,
-    http::{header::HeaderMap, StatusCode},
+    http::{
+        header::{HeaderMap, USER_AGENT},
+        StatusCode,
+    },
     response::IntoResponse,
     routing::get,
     Json, Router,
@@ -10,9 +13,11 @@ use axum::{
 use serde::Serialize;
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 struct Data {
     ip: String,
     port: u16,
+    user_agent: String,
 }
 
 #[tokio::main]
@@ -36,21 +41,22 @@ fn app() -> Router {
 
 async fn root(ConnectInfo(addr): ConnectInfo<SocketAddr>, headers: HeaderMap) -> String {
     tracing::info!("GET(/) Handling connection from {}", addr);
-    format!("{}", ip(addr.ip(), headers))
+    format!("{}", ip(addr.ip(), &headers))
 }
 
 async fn json(ConnectInfo(addr): ConnectInfo<SocketAddr>, headers: HeaderMap) -> impl IntoResponse {
     tracing::info!("GET(/json) Handling connection from {}", addr);
 
     let connection_data = Data {
-        ip: ip(addr.ip(), headers),
+        ip: ip(addr.ip(), &headers),
         port: addr.port(),
+        user_agent: user_agent(&headers),
     };
 
     (StatusCode::OK, Json(connection_data))
 }
 
-fn ip(address: IpAddr, headers: HeaderMap) -> String {
+fn ip(address: IpAddr, headers: &HeaderMap) -> String {
     let mut ip = address.to_string();
 
     if headers.contains_key("X-FORWARDED-FOR") {
@@ -75,8 +81,8 @@ fn ip(address: IpAddr, headers: HeaderMap) -> String {
         // - [0:0:0::0]:0 - IPv6 with port and with brackets
         // First deal with [IPv6]:PORT
         ip = match ip.split_once("]:") {
-            None => {ip},
-            Some(value) => {value.0.to_string().replace("[", "")},
+            None => ip,
+            Some(value) => value.0.to_string().replace("[", ""),
         };
 
         // IPv6 does not contains dots
@@ -89,10 +95,16 @@ fn ip(address: IpAddr, headers: HeaderMap) -> String {
         };
 
         ip = ip.replace("[", "").replace("]", "");
-
     };
 
     ip
+}
+
+fn user_agent(headers: &HeaderMap) -> String {
+    match headers.get(USER_AGENT) {
+        Some(ua) => ua.to_str().unwrap().to_string(),
+        None => String::new(),
+    }
 }
 
 #[cfg(test)]
@@ -110,7 +122,7 @@ mod tests {
             "2001:db8:85a3:8d3:1319:8a2e:370:7348",
         ] {
             let ip_addr = address.parse::<IpAddr>().unwrap();
-            assert_eq!(ip(ip_addr, HeaderMap::new()), address);
+            assert_eq!(ip(ip_addr, &HeaderMap::new()), address);
         }
     }
 
@@ -123,7 +135,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         let _ = headers.insert("X-FORWARDED-FOR", HeaderValue::from_str(expected).unwrap());
 
-        assert_eq!(ip(priv_address, headers), expected.to_string());
+        assert_eq!(ip(priv_address, &headers), expected.to_string());
     }
 
     #[test]
@@ -140,7 +152,7 @@ mod tests {
         );
 
         assert_eq!(
-            ip(priv_address.parse::<IpAddr>().unwrap(), headers),
+            ip(priv_address.parse::<IpAddr>().unwrap(), &headers),
             expected.to_string()
         );
     }
@@ -159,7 +171,7 @@ mod tests {
         );
 
         assert_eq!(
-            ip(priv_address.parse::<IpAddr>().unwrap(), headers),
+            ip(priv_address.parse::<IpAddr>().unwrap(), &headers),
             expected.to_string()
         );
     }
@@ -178,8 +190,25 @@ mod tests {
         );
 
         assert_eq!(
-            ip(priv_address.parse::<IpAddr>().unwrap(), headers),
+            ip(priv_address.parse::<IpAddr>().unwrap(), &headers),
             expected.to_string()
         );
+    }
+
+    #[test]
+    fn test_user_agent_from_empty_header() {
+        let mut headers = HeaderMap::new();
+        headers.insert(USER_AGENT, "".parse().unwrap());
+
+        assert_eq!(user_agent(&headers), "".to_string());
+    }
+
+    #[test]
+    fn test_user_agent_from_curl() {
+        let expected = "curl/8.2.1";
+        let mut headers = HeaderMap::new();
+        headers.insert(USER_AGENT, expected.parse().unwrap());
+
+        assert_eq!(user_agent(&headers), expected.to_string());
     }
 }

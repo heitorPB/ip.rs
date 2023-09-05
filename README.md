@@ -2,8 +2,8 @@
 
 A simple web service to find out your public IP address.
 
-[![Crates.io](https://img.shields.io/crates/v/ip-rs.svg)](https://crates.io/crate/ip-rs)
-[![Blog Post](https://img.shields.io/badge/Blog-post-green)](https://heitorpb.github.io/bla/ip.rs)
+[![Crates.io](https://img.shields.io/crates/v/ip-rs.svg)](https://crates.io/crates/ip-rs)
+[![Blog Post](https://img.shields.io/badge/Blog-post-green)](https://heitorpb.github.io/bla/ip-rs/)
 
 ## Usage
 

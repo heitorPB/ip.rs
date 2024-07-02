@@ -11,7 +11,7 @@
         pkgs = import nixpkgs { inherit system; };
         naersk' = pkgs.callPackage naersk { };
       in
-      rec {
+      {
         packages = rec {
           # For `nix build .#ip_rs`
           ip_rs = naersk'.buildPackage {
@@ -31,7 +31,7 @@
         };
 
         # For `nix develop`
-        devShell = pkgs.mkShell rec {
+        devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             cargo
             clippy
